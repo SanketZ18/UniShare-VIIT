@@ -70,6 +70,9 @@ public class ExcelServiceImpl implements ExcelService {
                     }
                     request.setPassword(password);
 
+                    // Col 11: Batch Year (e.g., 2022-26)
+                    request.setBatchYear(getCellValue(currentRow.getCell(11)));
+
                     if (!request.getEmail().isBlank() && !request.getPrn().isBlank()) {
                         requests.add(request);
                     }
