@@ -218,9 +218,12 @@ export default function DashboardLayout() {
           <div className="w-full">
             <Outlet />
           </div>
-          <footer className="mt-8 border-t border-amber-200/20 py-6 text-center">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Website Developed By Sanket Zagade | Email - <a href="mailto:sanketzagade2004@gmail.com" className="text-amber-600 hover:underline">sanketzagade2004@gmail.com</a>
+          <footer className="mt-10 border-t border-amber-200/30 py-8 text-center">
+            <p className="mt-3 text-[11px] font-black uppercase tracking-[0.25em] text-slate-950">
+              Website Developed By <span className="bg-[linear-gradient(135deg,#f59e0b_0%,#ea580c_100%)] bg-clip-text text-transparent">Sanket Zagade</span>
+            </p>
+            <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">
+              Email - <a href="mailto:sanketzagade2004@gmail.com" className="text-amber-600 hover:underline">sanketzagade2004@gmail.com</a>
             </p>
           </footer>
         </main>

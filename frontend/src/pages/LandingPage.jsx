@@ -452,8 +452,11 @@ export default function LandingPage() {
                 <p className="text-[11px] font-black uppercase tracking-[0.26em] text-slate-800">
                   Copyright 2026 UniShare | VIIT Baramati
                 </p>
-                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
-                  Website Developed By Sanket Zagade | Email - <a href="mailto:sanketzagade2004@gmail.com" className="text-amber-600 hover:underline">sanketzagade2004@gmail.com</a>
+                <p className="mt-3 text-[11px] font-black uppercase tracking-[0.25em] text-slate-950">
+                  Website Developed By <span className="bg-[linear-gradient(135deg,#f59e0b_0%,#ea580c_100%)] bg-clip-text text-transparent">Sanket Zagade</span>
+                </p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">
+                  Email - <a href="mailto:sanketzagade2004@gmail.com" className="text-amber-600 hover:underline">sanketzagade2004@gmail.com</a>
                 </p>
               </div>
             </div>
