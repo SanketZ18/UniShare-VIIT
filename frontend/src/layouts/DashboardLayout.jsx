@@ -218,6 +218,11 @@ export default function DashboardLayout() {
           <div className="w-full">
             <Outlet />
           </div>
+          <footer className="mt-8 border-t border-amber-200/20 py-6 text-center">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Website Developed By Sanket Zagade | Email - <a href="mailto:sanketzagade2004@gmail.com" className="text-amber-600 hover:underline">sanketzagade2004@gmail.com</a>
+            </p>
+          </footer>
         </main>
       </div>
     </div>
