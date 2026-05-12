@@ -10,6 +10,8 @@ public interface FileStorageService {
     StoredFile store(byte[] content, String originalFileName, String contentType);
 
     org.springframework.core.io.Resource load(String storageFileName);
+    
+    boolean exists(String storageFileName);
 
     void delete(String storageFileName) throws IOException;
 

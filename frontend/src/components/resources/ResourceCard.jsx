@@ -5,6 +5,7 @@ const typeMap = {
   ASSIGNMENT: 'Assignment',
   QUESTION_PAPER: 'Question Paper',
   SYLLABUS: 'Syllabus',
+  ANNOUNCEMENT: 'SPPU Announcement',
 }
 
 const typeStyles = {
@@ -12,6 +13,7 @@ const typeStyles = {
   ASSIGNMENT: 'bg-orange-100 text-orange-700 border-orange-200',
   QUESTION_PAPER: 'bg-amber-100 text-amber-700 border-amber-200',
   SYLLABUS: 'bg-rose-100 text-rose-700 border-rose-200',
+  ANNOUNCEMENT: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 }
 
 export default function ResourceCard({ resource, userRole, onBookmark, onDelete, onDownload }) {
@@ -87,14 +89,26 @@ export default function ResourceCard({ resource, userRole, onBookmark, onDelete,
                 <Trash2 size={16} />
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={() => onDownload(resource.id, resource.fileName)}
-              className="portal-button-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.18em]"
-            >
-              <Download size={14} />
-              Download
-            </button>
+            {resource.type === 'ANNOUNCEMENT' ? (
+              <a
+                href={resource.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="portal-button-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.18em]"
+              >
+                <ArrowUpRight size={14} />
+                View Link
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onDownload(resource.id, resource.fileName)}
+                className="portal-button-primary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.18em]"
+              >
+                <Download size={14} />
+                Download
+              </button>
+            )}
           </div>
         </div>
 

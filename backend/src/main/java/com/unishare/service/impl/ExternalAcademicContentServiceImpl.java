@@ -406,7 +406,7 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
             Resource existing,
             Map<String, FileStorageService.StoredFile> downloadedFiles
     ) {
-        if (existing != null && existing.getStorageFileName() != null && !existing.getStorageFileName().isBlank()) {
+        if (existing != null && existing.getStorageFileName() != null && !existing.getStorageFileName().isBlank() && fileStorageService.exists(existing.getStorageFileName())) {
             return new DownloadedDocument(
                     new FileStorageService.StoredFile(
                             existing.getStorageFileName(),
@@ -432,7 +432,7 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
             Resource resource,
             Map<String, FileStorageService.StoredFile> downloadedFiles
     ) {
-        if (resource.getStorageFileName() != null && !resource.getStorageFileName().isBlank()) {
+        if (resource.getStorageFileName() != null && !resource.getStorageFileName().isBlank() && fileStorageService.exists(resource.getStorageFileName())) {
             FileStorageService.StoredFile storedFile = new FileStorageService.StoredFile(
                     resource.getStorageFileName(),
                     resource.getFileName(),

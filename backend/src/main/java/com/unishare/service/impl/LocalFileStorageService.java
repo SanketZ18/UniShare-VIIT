@@ -97,6 +97,14 @@ public class LocalFileStorageService implements FileStorageService {
     }
 
     @Override
+    public boolean exists(String storageFileName) {
+        if (storageFileName == null || storageFileName.isBlank()) {
+            return false;
+        }
+        return Files.exists(uploadRoot.resolve(storageFileName).normalize());
+    }
+
+    @Override
     public void delete(String storageFileName) throws IOException {
         Files.deleteIfExists(uploadRoot.resolve(storageFileName).normalize());
     }

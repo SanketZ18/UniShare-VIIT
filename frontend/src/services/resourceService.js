@@ -44,16 +44,24 @@ const extractFileName = (headerValue, fallbackName) => {
 }
 
 export const downloadResource = async (resourceId, fallbackName = 'resource') => {
-  const response = await api.get(`/resources/${resourceId}/download`, {
-    responseType: 'blob',
-  })
+  try {
+    const response = await api.get(`/resources/${resourceId}/download`, {
+      responseType: 'blob',
+    })
 
-  const url = window.URL.createObjectURL(new Blob([response.data]))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = extractFileName(response.headers['content-disposition'], fallbackName)
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.URL.revokeObjectURL(url)
+    const contentDisposition = response.headers['content-disposition'] || response.headers['Content-Disposition']
+    const fileName = extractFileName(contentDisposition, fallbackName)
+    
+    const url = window.URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Download failed:', error)
+    throw error
+  }
 }

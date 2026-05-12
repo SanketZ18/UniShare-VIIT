@@ -3,6 +3,7 @@ package com.unishare.controller;
 import com.unishare.dto.ApiResponse;
 import com.unishare.dto.resource.ResourceResponse;
 import com.unishare.service.ResourceService;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -76,11 +77,19 @@ public class ResourceController {
 
     @GetMapping("/{id}/download")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Resource> downloadResource(
+    public ResponseEntity<org.springframework.core.io.Resource> downloadResource(
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         ResourceService.DownloadableResource downloadableResource = resourceService.download(id, userDetails.getUsername());
+        
+        org.springframework.core.io.Resource file = downloadableResource.file();
+        long contentLength;
+        try {
+            contentLength = file.contentLength();
+        } catch (IOException e) {
+            contentLength = -1;
+        }
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(downloadableResource.contentType()))
@@ -88,6 +97,7 @@ public class ResourceController {
                         .filename(downloadableResource.fileName())
                         .build()
                         .toString())
-                .body(downloadableResource.file());
+                .contentLength(contentLength)
+                .body(file);
     }
 }
