@@ -77,12 +77,21 @@ public class ResourceController {
 
     @GetMapping("/{id}/download")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<org.springframework.core.io.Resource> downloadResource(
+    public ResponseEntity<?> downloadResource(
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         ResourceService.DownloadableResource downloadableResource = resourceService.download(id, userDetails.getUsername());
         
+        // If the storage name is a URL (Cloudinary), redirect the user directly to the cloud storage
+        // This is more efficient and avoids ephemeral storage issues
+        String storageName = downloadableResource.storageName();
+        if (storageName != null && storageName.startsWith("http")) {
+            return ResponseEntity.status(302)
+                    .header(HttpHeaders.LOCATION, storageName)
+                    .build();
+        }
+
         org.springframework.core.io.Resource file = downloadableResource.file();
         long contentLength;
         try {

@@ -180,7 +180,8 @@ public class ResourceServiceImpl implements ResourceService {
         return new DownloadableResource(
                 fileStorageService.load(resource.getStorageFileName()),
                 resource.getFileName(),
-                resource.getContentType()
+                resource.getContentType(),
+                resource.getStorageFileName()
         );
     }
 

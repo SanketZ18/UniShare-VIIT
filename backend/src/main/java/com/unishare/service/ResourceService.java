@@ -29,7 +29,8 @@ public interface ResourceService {
     record DownloadableResource(
             org.springframework.core.io.Resource file,
             String fileName,
-            String contentType
+            String contentType,
+            String storageName
     ) {
     }
 }
