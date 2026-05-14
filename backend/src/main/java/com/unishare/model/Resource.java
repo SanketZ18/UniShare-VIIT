@@ -26,7 +26,9 @@ public class Resource {
     private String subject;
     private String uploadedBy;
     private String uploaderName;
+    @org.springframework.data.mongodb.core.index.Indexed(unique = true)
     private String resourceKey;
+
     private String sourceUrl;
     private String fileUrl;
     private String fileName;

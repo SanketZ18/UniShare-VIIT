@@ -119,11 +119,28 @@ public class ResourceServiceImpl implements ResourceService {
         }
 
         List<Resource> resources = mongoTemplate.find(query, Resource.class);
+        
+        // Filter out duplicates by resourceKey to ensure UI only shows one entry per synced item
+        java.util.Map<String, Resource> uniqueResources = new java.util.LinkedHashMap<>();
+        for (Resource res : resources) {
+            String key = res.getResourceKey();
+            // If it has a resourceKey, deduplicate. Otherwise (manual uploads), show as is.
+            if (key != null && !key.isBlank()) {
+                if (!uniqueResources.containsKey(key)) {
+                    uniqueResources.put(key, res);
+                }
+            } else {
+                uniqueResources.put(res.getId(), res);
+            }
+        }
+        List<Resource> filteredResources = new java.util.ArrayList<>(uniqueResources.values());
+
         Set<String> bookmarkedIds = getBookmarkedIds(viewerEmail);
-        return resources.stream()
+        return filteredResources.stream()
                 .map(resource -> PortalMapper.toResourceResponse(resource, bookmarkedIds.contains(resource.getId())))
                 .toList();
     }
+
 
     @Override
     public ResourceResponse getResourceById(String id, String viewerEmail) {

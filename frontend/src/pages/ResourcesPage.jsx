@@ -90,7 +90,15 @@ export default function ResourcesPage() {
     setResources((current) => current.filter((resource) => resource.id !== resourceId))
   }
 
-  const handleDownload = async (resourceId, fileName) => {
+  const handleDownload = async (resourceId, fileName, fileUrl) => {
+    // If it's a direct external link (SPPU or Cloudinary), open it directly to avoid CORS issues with AJAX
+    if (fileUrl && fileUrl.startsWith('http') && !fileUrl.includes('/api/resources/')) {
+      // We still hit the backend download endpoint to increment the counter,
+      // but we do it via a direct browser navigation so it follows the redirect.
+      window.open(`/api/resources/${resourceId}/download`, '_blank')
+      return
+    }
+
     setDownloadingId(resourceId)
     try {
       await downloadResource(resourceId, fileName)
@@ -130,7 +138,7 @@ export default function ResourcesPage() {
             userRole={user.role}
             onBookmark={handleBookmark}
             onDelete={handleDelete}
-            onDownload={handleDownload}
+            onDownload={() => handleDownload(resource.id, resource.fileName, resource.fileUrl)}
             isDownloading={downloadingId === resource.id}
           />
         ))}

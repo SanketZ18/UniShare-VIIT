@@ -7,6 +7,8 @@ import com.unishare.repository.ResourceRepository;
 import com.unishare.service.ExternalAcademicContentService;
 import com.unishare.service.FileStorageService;
 import com.unishare.service.NotificationService;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -68,7 +70,9 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
     private final ResourceRepository resourceRepository;
     private final FileStorageService fileStorageService;
     private final NotificationService notificationService;
+    private final MongoTemplate mongoTemplate;
     private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
+
 
     @Value("${app.bootstrap.external-resources.enabled:true}")
     private boolean externalResourcesEnabled;
@@ -365,8 +369,28 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
             Map<String, FileStorageService.StoredFile> downloadedFiles
     ) {
         try {
-            Resource resource = resourceRepository.findByResourceKey(definition.resourceKey())
-                    .orElseGet(Resource::new);
+            // Find all existing resources with this key to handle duplicates
+            List<Resource> existingResources = mongoTemplate.find(
+                    new org.springframework.data.mongodb.core.query.Query(
+                            org.springframework.data.mongodb.core.query.Criteria.where("resourceKey").is(definition.resourceKey())
+                    ).with(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")),
+                    Resource.class
+            );
+
+            Resource resource;
+            if (!existingResources.isEmpty()) {
+                resource = existingResources.get(0);
+                // If there are more than one, clean up the duplicates immediately
+                if (existingResources.size() > 1) {
+                    log.info("Found {} duplicates for resource key {}, cleaning up...", existingResources.size(), definition.resourceKey());
+                    for (int i = 1; i < existingResources.size(); i++) {
+                        resourceRepository.deleteById(existingResources.get(i).getId());
+                    }
+                }
+            } else {
+                resource = new Resource();
+            }
+
             FileStorageService.StoredFile storedFile = resolveStoredFile(definition, resource, downloadedFiles);
 
             resource.setResourceKey(definition.resourceKey());
@@ -388,7 +412,6 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
             saved.setFileUrl(definition.sourceUrl()); // Direct link to SPPU
             resourceRepository.save(saved);
 
-            
             notificationService.createResourceNotification(
                     saved.getId(), 
                     saved.getTitle(), 
@@ -401,6 +424,7 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
             log.warn("Failed to sync external academic resource {}: {}", definition.resourceKey(), exception.getMessage());
         }
     }
+
 
     private DownloadedDocument resolveDownloadedDocument(
             String sourceUrl,
