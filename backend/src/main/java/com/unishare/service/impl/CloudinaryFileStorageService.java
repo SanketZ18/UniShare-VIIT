@@ -52,9 +52,11 @@ public class CloudinaryFileStorageService implements FileStorageService {
             
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "public_id", publicId,
-                    "resource_type", "auto",
+                    "resource_type", file.getContentType().startsWith("image/") ? "image" : "raw",
+                    "type", "upload",
                     "folder", "unishare/resources"
             ));
+
 
             String secureUrl = (String) uploadResult.get("secure_url");
             return new StoredFile(secureUrl, originalFileName, file.getContentType());
@@ -76,9 +78,11 @@ public class CloudinaryFileStorageService implements FileStorageService {
 
             Map uploadResult = cloudinary.uploader().upload(content, ObjectUtils.asMap(
                     "public_id", publicId,
-                    "resource_type", "auto",
+                    "resource_type", contentType.startsWith("image/") ? "image" : "raw",
+                    "type", "upload",
                     "folder", "unishare/resources"
             ));
+
 
             String secureUrl = (String) uploadResult.get("secure_url");
             return new StoredFile(secureUrl, sanitizedFileName, contentType);
