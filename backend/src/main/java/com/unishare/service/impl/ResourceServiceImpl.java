@@ -177,13 +177,31 @@ public class ResourceServiceImpl implements ResourceService {
                     .build());
         }
 
+        String storageFileName = resource.getStorageFileName();
+        String sourceUrl = resource.getSourceUrl();
+
+        // Check if the file is missing in storage but we have a backup source URL (SPPU)
+        boolean fileMissing = storageFileName == null || storageFileName.isBlank() || !fileStorageService.exists(storageFileName);
+
+        if (fileMissing && sourceUrl != null && !sourceUrl.isBlank()) {
+            log.info("Storage file missing for resource {}, falling back to sourceUrl: {}", resourceId, sourceUrl);
+            return new DownloadableResource(
+                    null,
+                    resource.getFileName(),
+                    resource.getContentType(),
+                    sourceUrl // Redirect to original source
+            );
+        }
+
         return new DownloadableResource(
-                fileStorageService.load(resource.getStorageFileName()),
+                fileStorageService.load(storageFileName),
                 resource.getFileName(),
                 resource.getContentType(),
-                resource.getStorageFileName()
+                storageFileName
         );
     }
+
+
 
     Resource getResourceEntity(String resourceId) {
         return resourceRepository.findById(resourceId)

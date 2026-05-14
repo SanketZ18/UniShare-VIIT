@@ -377,16 +377,17 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
             resource.setUploadedBy(SYSTEM_UPLOADER_ID);
             resource.setUploaderName(SYSTEM_UPLOADER_NAME);
             resource.setSourceUrl(definition.sourceUrl());
-            resource.setFileName(storedFile.originalFileName());
-            resource.setContentType(storedFile.contentType());
-            resource.setStorageFileName(storedFile.storageFileName());
+            resource.setFileName(definition.preferredFileName());
+            resource.setContentType(PDF_CONTENT_TYPE);
+            resource.setStorageFileName(null); // DO NOT store SPPU files on cloud
             resource.setDepartment(definition.department());
             resource.setYear(definition.year());
             resource.setSemester(definition.semester());
 
             Resource saved = resourceRepository.save(resource);
-            saved.setFileUrl("/api/resources/" + saved.getId() + "/download");
+            saved.setFileUrl(definition.sourceUrl()); // Direct link to SPPU
             resourceRepository.save(saved);
+
             
             notificationService.createResourceNotification(
                     saved.getId(), 
@@ -406,52 +407,30 @@ public class ExternalAcademicContentServiceImpl implements ExternalAcademicConte
             Resource existing,
             Map<String, FileStorageService.StoredFile> downloadedFiles
     ) {
-        if (existing != null && existing.getStorageFileName() != null && !existing.getStorageFileName().isBlank() && fileStorageService.exists(existing.getStorageFileName())) {
-            return new DownloadedDocument(
-                    new FileStorageService.StoredFile(
-                            existing.getStorageFileName(),
-                            existing.getFileName(),
-                            existing.getContentType()
-                    ),
-                    fetchBinary(sourceUrl)
-            );
-        }
-
+        // We still need the binary for metadata extraction, but we don't store it in FileStorageService
         byte[] content = fetchBinary(sourceUrl);
         String fileName = resolveFileName(sourceUrl);
-        String contentType = PDF_CONTENT_TYPE;
-        FileStorageService.StoredFile storedFile = downloadedFiles.computeIfAbsent(
-                sourceUrl,
-                ignored -> fileStorageService.store(content, fileName, contentType)
+        
+        // Return a dummy StoredFile since we aren't persisting it
+        return new DownloadedDocument(
+                new FileStorageService.StoredFile(null, fileName, PDF_CONTENT_TYPE), 
+                content
         );
-        return new DownloadedDocument(storedFile, content);
     }
+
 
     private FileStorageService.StoredFile resolveStoredFile(
             ExternalResourceDefinition definition,
             Resource resource,
             Map<String, FileStorageService.StoredFile> downloadedFiles
     ) {
-        if (resource.getStorageFileName() != null && !resource.getStorageFileName().isBlank() && fileStorageService.exists(resource.getStorageFileName())) {
-            FileStorageService.StoredFile storedFile = new FileStorageService.StoredFile(
-                    resource.getStorageFileName(),
-                    resource.getFileName(),
-                    resource.getContentType()
-            );
-            downloadedFiles.putIfAbsent(definition.sourceUrl(), storedFile);
-            return storedFile;
-        }
-
-        byte[] content = fetchBinary(definition.sourceUrl());
+        // This method is now simplified as we don't store SPPU files
         String fileName = definition.preferredFileName() == null || definition.preferredFileName().isBlank()
                 ? resolveFileName(definition.sourceUrl())
                 : definition.preferredFileName();
-        String contentType = PDF_CONTENT_TYPE;
-        return downloadedFiles.computeIfAbsent(
-                definition.sourceUrl(),
-                ignored -> fileStorageService.store(content, fileName, contentType)
-        );
+        return new FileStorageService.StoredFile(null, fileName, PDF_CONTENT_TYPE);
     }
+
 
     private PdfInsight extractPdfInsight(byte[] content) {
         if (content == null || content.length < 100) {

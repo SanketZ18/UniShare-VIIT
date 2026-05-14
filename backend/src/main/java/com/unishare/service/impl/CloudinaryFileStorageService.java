@@ -28,8 +28,14 @@ public class CloudinaryFileStorageService implements FileStorageService {
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "application/pdf",
             "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "image/jpeg",
+            "image/png",
+            "image/webp"
     );
+
 
     @Override
     public StoredFile store(MultipartFile file) {
@@ -105,16 +111,22 @@ public class CloudinaryFileStorageService implements FileStorageService {
     public void delete(String storageFileName) throws IOException {
         if (storageFileName != null && storageFileName.contains("unishare/resources/")) {
             try {
-                // Extract public ID from URL
+                // Extract public ID and resource type from URL
                 // Example: https://res.cloudinary.com/cloud_name/raw/upload/v1/unishare/resources/uuid.pdf
                 String[] parts = storageFileName.split("/");
+                
+                // Cloudinary URL structure: .../cloud_name/resource_type/upload/v123/folder/public_id.ext
+                // In the example above: parts[3] is "raw", parts[parts.length-1] is "uuid.pdf"
+                String resourceType = parts[3]; 
                 String lastPart = parts[parts.length - 1];
                 String publicId = "unishare/resources/" + lastPart.split("\\.")[0];
                 
-                cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("resource_type", "raw"));
+                log.info("Deleting from Cloudinary: publicId={}, resourceType={}", publicId, resourceType);
+                cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("resource_type", resourceType));
             } catch (Exception e) {
                 log.warn("Failed to delete file from Cloudinary: {}", storageFileName, e);
             }
         }
     }
+
 }
