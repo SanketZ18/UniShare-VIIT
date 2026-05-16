@@ -90,10 +90,15 @@ export default function ResourcesPage() {
     setResources((current) => current.filter((resource) => resource.id !== resourceId))
   }
 
-  const handleDownload = (resourceId) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api'
-    const downloadUrl = `${baseUrl}/resources/${resourceId}/download`
-    window.open(downloadUrl, '_blank')
+  const handleDownload = async (resourceId, fileName) => {
+    setDownloadingId(resourceId)
+    try {
+      await downloadResource(resourceId, fileName)
+    } catch (downloadError) {
+      alert(downloadError.response?.data?.message || 'Download failed. The file might be currently unavailable.')
+    } finally {
+      setDownloadingId(null)
+    }
   }
 
 
@@ -127,7 +132,7 @@ export default function ResourcesPage() {
             userRole={user.role}
             onBookmark={handleBookmark}
             onDelete={handleDelete}
-            onDownload={() => handleDownload(resource.id)}
+            onDownload={handleDownload}
 
 
             isDownloading={downloadingId === resource.id}

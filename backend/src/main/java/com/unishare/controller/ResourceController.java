@@ -83,17 +83,11 @@ public class ResourceController {
         String viewerEmail = userDetails != null ? userDetails.getUsername() : null;
         ResourceService.DownloadableResource downloadableResource = resourceService.download(id, viewerEmail);
 
-        
-        // If the storage name is a URL (Cloudinary), redirect the user directly to the cloud storage
-        // This is more efficient and avoids ephemeral storage issues
-        String storageName = downloadableResource.storageName();
-        if (storageName != null && storageName.startsWith("http")) {
-            return ResponseEntity.status(302)
-                    .header(HttpHeaders.LOCATION, storageName)
-                    .build();
+        org.springframework.core.io.Resource file = downloadableResource.file();
+        if (file == null) {
+            return ResponseEntity.notFound().build();
         }
 
-        org.springframework.core.io.Resource file = downloadableResource.file();
         long contentLength;
         try {
             contentLength = file.contentLength();

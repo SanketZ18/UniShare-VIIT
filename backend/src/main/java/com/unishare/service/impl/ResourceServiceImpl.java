@@ -205,12 +205,17 @@ public class ResourceServiceImpl implements ResourceService {
 
         if (fileMissing && sourceUrl != null && !sourceUrl.isBlank()) {
             log.info("Storage file missing for resource {}, falling back to sourceUrl: {}", resourceId, sourceUrl);
-            return new DownloadableResource(
-                    null,
-                    resource.getFileName(),
-                    resource.getContentType(),
-                    sourceUrl // Redirect to original source
-            );
+            try {
+                return new DownloadableResource(
+                        new org.springframework.core.io.UrlResource(sourceUrl),
+                        resource.getFileName(),
+                        resource.getContentType(),
+                        sourceUrl // Redirect to original source
+                );
+            } catch (java.net.MalformedURLException e) {
+                log.error("Failed to create UrlResource for fallback sourceUrl: {}", sourceUrl, e);
+                throw new IllegalStateException("Invalid source URL for resource", e);
+            }
         }
 
         return new DownloadableResource(
