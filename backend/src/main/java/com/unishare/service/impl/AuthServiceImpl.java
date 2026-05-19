@@ -270,34 +270,52 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Bootstrap Super Admin
-        if (!userAccountRepository.existsByEmailIgnoreCase(bootstrapAdminEmail.trim().toLowerCase(Locale.ROOT))) {
-            RegisterRequest request = new RegisterRequest();
-            request.setRole(Role.SUPER_ADMIN);
-            request.setEmail(bootstrapAdminEmail.trim().toLowerCase(Locale.ROOT));
-            request.setPassword(bootstrapAdminPassword);
-            request.setFullName(bootstrapAdminName);
-            request.setMobile("9999999999");
-            request.setGender(com.unishare.model.enums.Gender.OTHER);
-            request.setDepartment(Department.COMMON);
-            request.setStatus(com.unishare.model.enums.UserStatus.ACTIVE);
-            request.setStaffId("BOOTSTRAP-ADMIN");
-            request.setDesignation("Super Admin");
-            createStaffAccount(request, Role.SUPER_ADMIN);
-            log.info("Bootstrap super admin account created for {}", bootstrapAdminEmail);
+        try {
+            if (!userAccountRepository.existsByEmailIgnoreCase(bootstrapAdminEmail.trim().toLowerCase(Locale.ROOT)) &&
+                    !staffRepository.existsByStaffId("BOOTSTRAP-ADMIN")) {
+                RegisterRequest request = new RegisterRequest();
+                request.setRole(Role.SUPER_ADMIN);
+                request.setEmail(bootstrapAdminEmail.trim().toLowerCase(Locale.ROOT));
+                request.setPassword(bootstrapAdminPassword);
+                request.setFullName(bootstrapAdminName);
+                request.setMobile("9999999999");
+                request.setGender(com.unishare.model.enums.Gender.OTHER);
+                request.setDepartment(Department.COMMON);
+                request.setStatus(com.unishare.model.enums.UserStatus.ACTIVE);
+                request.setStaffId("BOOTSTRAP-ADMIN");
+                request.setDesignation("Super Admin");
+                createStaffAccount(request, Role.SUPER_ADMIN);
+                log.info("Bootstrap super admin account created for {}", bootstrapAdminEmail);
+            }
+        } catch (Exception e) {
+            log.error("Failed to bootstrap super admin account: {}", e.getMessage());
         }
 
         // Bootstrap Dummy HOD
-        bootstrapDummyUser("hod@unishare.com", "hod123", "Dr. Dummy HOD", Role.HOD, "HOD-DUMMY", Department.MCA);
+        try {
+            bootstrapDummyUser("hod@unishare.com", "hod123", "Dr. Dummy HOD", Role.HOD, "HOD-DUMMY", Department.MCA);
+        } catch (Exception e) {
+            log.error("Failed to bootstrap dummy HOD account: {}", e.getMessage());
+        }
         
         // Bootstrap Dummy Senior Clerk
-        bootstrapDummyUser("clerk@unishare.com", "clerk123", "Mr. Dummy Clerk", Role.SENIOR_CLERK, "CLERK-DUMMY", Department.MCA);
+        try {
+            bootstrapDummyUser("clerk@unishare.com", "clerk123", "Mr. Dummy Clerk", Role.SENIOR_CLERK, "CLERK-DUMMY", Department.MCA);
+        } catch (Exception e) {
+            log.error("Failed to bootstrap dummy clerk account: {}", e.getMessage());
+        }
         
         // Bootstrap Dummy Director
-        bootstrapDummyUser("director@unishare.com", "director123", "Prof. Dummy Director", Role.DIRECTOR, "DIR-DUMMY", Department.COMMON);
+        try {
+            bootstrapDummyUser("director@unishare.com", "director123", "Prof. Dummy Director", Role.DIRECTOR, "DIR-DUMMY", Department.COMMON);
+        } catch (Exception e) {
+            log.error("Failed to bootstrap dummy director account: {}", e.getMessage());
+        }
     }
 
     private void bootstrapDummyUser(String email, String password, String name, Role role, String staffId, Department dept) {
-        if (!userAccountRepository.existsByEmailIgnoreCase(email.toLowerCase(Locale.ROOT))) {
+        if (!userAccountRepository.existsByEmailIgnoreCase(email.toLowerCase(Locale.ROOT)) &&
+                !staffRepository.existsByStaffId(staffId)) {
             RegisterRequest request = new RegisterRequest();
             request.setRole(role);
             request.setEmail(email.toLowerCase(Locale.ROOT));
