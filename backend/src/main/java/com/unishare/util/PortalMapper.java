@@ -50,7 +50,7 @@ public final class PortalMapper {
         );
     }
 
-    public static UserProfileResponse toUserProfile(UserAccount account, String fullName, Department department, String mobile, com.unishare.model.enums.Gender gender, java.time.LocalDate birthDate, String batchYear) {
+    public static UserProfileResponse toUserProfile(UserAccount account, String fullName, Department department, String mobile, com.unishare.model.enums.Gender gender, java.time.LocalDate birthDate, String batchYear, Integer semester) {
         return new UserProfileResponse(
                 account.getId(),
                 account.getUserId(),
@@ -62,6 +62,7 @@ public final class PortalMapper {
                 account.getRole(),
                 department,
                 batchYear,
+                semester,
                 account.isActive()
         );
     }

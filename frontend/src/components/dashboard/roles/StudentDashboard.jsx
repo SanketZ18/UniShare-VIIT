@@ -12,8 +12,36 @@ import {
   Users,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { fetchTimetable } from '../../../services/timetableService'
 
 export default function StudentDashboard({ user, summary }) {
+  const [timetable, setTimetable] = useState(null)
+  const [activeDay, setActiveDay] = useState('Monday')
+  const [loadingTimetable, setLoadingTimetable] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    const getTimetableData = async () => {
+      if (!user?.department) return
+      try {
+        setLoadingTimetable(true)
+        const data = await fetchTimetable(user.department, user.semester || 1)
+        if (active) {
+          setTimetable(data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch timetable', err)
+      } finally {
+        if (active) {
+          setLoadingTimetable(false)
+        }
+      }
+    }
+    getTimetableData()
+    return () => { active = false }
+  }, [user?.department, user?.semester])
+
   const stats = [
     { label: 'Resources', value: summary?.totalResources || 0, icon: BookOpen, shell: 'bg-amber-100 text-amber-700' },
     { label: 'Downloads', value: summary?.totalDownloads || 0, icon: BookOpen, shell: 'bg-orange-100 text-orange-700' },
@@ -68,13 +96,6 @@ export default function StudentDashboard({ user, summary }) {
             <p className="mt-2 text-3xl font-black text-slate-900">{stat.value}</p>
           </div>
         ))}
-        <div className="portal-panel portal-3d rounded-[2rem] p-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-            <Search size={22} />
-          </div>
-          <p className="mt-5 text-[11px] font-black uppercase tracking-[0.22em] text-slate-700">Search Ready</p>
-          <p className="mt-2 text-3xl font-black text-slate-900">Fast</p>
-        </div>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-12">
@@ -84,9 +105,9 @@ export default function StudentDashboard({ user, summary }) {
               <div>
                 <div className="portal-chip text-[10px] font-black uppercase tracking-[0.22em]">
                   <Layers size={12} />
-                  Recent Resources
+                  Academic Resources
                 </div>
-                <h2 className="mt-4 text-2xl font-black text-slate-900">Fresh uploads from your department</h2>
+                <h2 className="mt-4 text-2xl font-black text-slate-900">Recent Materials for Sem {user?.semester || 1}</h2>
               </div>
               <Link to="/resources" className="portal-button-secondary flex h-11 w-11 items-center justify-center rounded-2xl">
                 <Layers size={18} />
@@ -106,25 +127,20 @@ export default function StudentDashboard({ user, summary }) {
                         <FileText size={22} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap gap-2">
-                          <span className="rounded-full bg-orange-100 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-orange-700">
-                            {resource.type}
-                          </span>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-slate-800">
-                            Sem {resource.semester}
-                          </span>
-                        </div>
+                        <span className="rounded-full bg-orange-150 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-orange-700">
+                          {resource.type}
+                        </span>
                         <h3 className="mt-3 truncate text-sm font-black uppercase tracking-[0.08em] text-slate-900">
                           {resource.title}
                         </h3>
-                        <p className="mt-1 truncate text-xs font-medium text-slate-700">{resource.subject}</p>
+                        <p className="mt-1 truncate text-xs font-semibold text-slate-600">{resource.subject}</p>
                       </div>
                     </div>
                   </Link>
                 ))
               ) : (
                 <div className="rounded-[1.8rem] border border-dashed border-slate-200 bg-slate-50/30 px-6 py-12 text-center sm:col-span-2">
-                  <p className="text-sm font-black uppercase tracking-[0.24em] text-slate-800">No recent resources yet</p>
+                  <p className="text-sm font-black uppercase tracking-[0.24em] text-slate-800">No resources matched your semester filter</p>
                 </div>
               )}
             </div>
@@ -177,30 +193,73 @@ export default function StudentDashboard({ user, summary }) {
           </div>
 
           <div className="portal-panel portal-3d rounded-[2.4rem] p-8">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
                 <Calendar size={22} />
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-700">Timeline</p>
-                <h3 className="mt-1 text-xl font-black text-slate-900">Current Academic Cycle</h3>
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-700">Weekly Timetable</p>
+                <h3 className="mt-1 text-base font-black text-slate-900">
+                  {user?.department || 'MCA'} - Sem {user?.semester || 1}
+                </h3>
               </div>
             </div>
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 text-sm">
-                <span className="font-medium text-slate-800">Mid-term preparation</span>
-                <span className="font-black uppercase tracking-[0.18em] text-amber-700">12 days</span>
+
+            {loadingTimetable ? (
+              <p className="text-xs text-slate-500 font-bold uppercase animate-pulse">Loading schedule...</p>
+            ) : timetable && timetable.schedule ? (
+              <>
+                {/* Mon - Sat selector pills */}
+                <div className="flex flex-wrap gap-1 mb-4 bg-slate-50 p-1 rounded-xl border border-slate-100">
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d) => {
+                    const shortName = d.substring(0, 3);
+                    const isActive = activeDay === d;
+                    return (
+                      <button
+                        key={d}
+                        onClick={() => setActiveDay(d)}
+                        className={`flex-1 text-center py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.05em] transition-all ${
+                          isActive
+                            ? 'bg-amber-500 text-white font-extrabold shadow-sm'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {shortName}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Slots display */}
+                <div className="space-y-3">
+                  {timetable.schedule.find(s => s.day === activeDay)?.slots.length ? (
+                    timetable.schedule.find(s => s.day === activeDay).slots.map((slot, index) => (
+                      <div key={index} className="p-3 bg-slate-50/50 hover:bg-white rounded-xl border border-slate-100 transition duration-150">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Clock size={11} className="text-amber-700" />
+                          <span className="text-[10px] font-bold text-slate-700 tracking-[0.02em]">{slot.time || 'TBD'}</span>
+                        </div>
+                        <h4 className="text-xs font-black uppercase tracking-[0.05em] text-slate-900 mb-1">{slot.subject || 'No Subject'}</h4>
+                        <div className="flex flex-wrap justify-between items-center text-[10px] font-medium text-slate-700 gap-1 mt-2 pt-1 border-t border-dashed border-slate-200/60">
+                          <span>{slot.teacher || 'TBD'}</span>
+                          <span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-[4px] font-black tracking-wider text-[8px] uppercase">{slot.classroom || 'Room -'}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 px-4 bg-slate-50/30 rounded-xl border border-dashed border-slate-200">
+                      <p className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-700">No classes scheduled</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 px-4 bg-slate-50/30 rounded-xl border border-dashed border-slate-200">
+                <p className="text-xs font-black uppercase tracking-[0.1em] text-slate-700 mb-1">No Timetable Uploaded</p>
+                <p className="text-[10px] text-slate-500 font-semibold uppercase leading-normal">The HOD has not registered a schedule for your cohort yet.</p>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-800">Term-end review</span>
-                <span className="font-black uppercase tracking-[0.18em] text-amber-700">Upcoming</span>
-              </div>
-            </div>
+            )}
           </div>
-
-
-
-
         </section>
       </div>
     </div>

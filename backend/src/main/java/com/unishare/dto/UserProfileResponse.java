@@ -14,6 +14,7 @@ public record UserProfileResponse(
         Role role,
         Department department,
         String batchYear,
+        Integer semester,
         boolean active
 ) {
 }
