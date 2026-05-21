@@ -30,6 +30,7 @@ public class UserAccount implements UserDetails {
     private String userId;
     private Instant lastLogin;
 
+    @Builder.Default
     private boolean active = true;
 
     @CreatedDate

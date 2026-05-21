@@ -34,13 +34,87 @@ public class DemoDataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (!demoDataEnabled) {
-            log.info("Demo data seeding is disabled");
+            log.info("Demo data seeding is disabled. Cleaning up existing demo data if present...");
+            cleanupDemoData();
             return;
         }
 
         seedAdmin();
         seedStaffMembers();
         seedStudents();
+    }
+
+    private void cleanupDemoData() {
+        // Delete seeded students
+        List<String> studentEmails = List.of(
+                "aarav.kulkarni@unishare.edu",
+                "sneha.joshi@unishare.edu",
+                "rohan.shinde@unishare.edu",
+                "neha.more@unishare.edu",
+                "omkar.jadhav@unishare.edu"
+        );
+        for (String email : studentEmails) {
+            studentRepository.findByEmailIgnoreCase(email).ifPresent(student -> {
+                userAccountRepository.findByUserId(student.getId()).ifPresent(userAccountRepository::delete);
+                studentRepository.delete(student);
+                log.info("Cleaned up demo student: {}", email);
+            });
+        }
+
+        // Delete seeded staff members
+        List<String> staffEmails = List.of(
+                "sanket@unishare.edu",
+                "priya.deshmukh@unishare.edu",
+                "rahul.patil@unishare.edu"
+        );
+        for (String email : staffEmails) {
+            staffRepository.findByEmailIgnoreCase(email).ifPresent(staff -> {
+                userAccountRepository.findByUserId(staff.getId()).ifPresent(userAccountRepository::delete);
+                staffRepository.delete(staff);
+                log.info("Cleaned up demo staff: {}", email);
+            });
+        }
+
+        // Delete dummy accounts if they exist
+        List<String> dummyEmails = List.of(
+                "hod@unishare.com",
+                "clerk@unishare.com",
+                "director@unishare.com"
+        );
+        for (String email : dummyEmails) {
+            userAccountRepository.findByEmailIgnoreCase(email).ifPresent(account -> {
+                if (account.getRole() == Role.STUDENT) {
+                    studentRepository.deleteById(account.getUserId());
+                } else {
+                    staffRepository.deleteById(account.getUserId());
+                }
+                userAccountRepository.delete(account);
+                log.info("Cleaned up dummy account: {}", email);
+            });
+            // Ensure profile is deleted even if account didn't exist
+            studentRepository.findByEmailIgnoreCase(email).ifPresent(student -> {
+                studentRepository.delete(student);
+                log.info("Cleaned up dummy student profile: {}", email);
+            });
+            staffRepository.findByEmailIgnoreCase(email).ifPresent(staff -> {
+                staffRepository.delete(staff);
+                log.info("Cleaned up dummy staff profile: {}", email);
+            });
+        }
+
+        // Ensure any remaining dummy staff profiles by ID are deleted
+        staffRepository.findByStaffId("CLERK-DUMMY").ifPresent(staff -> {
+            staffRepository.delete(staff);
+            log.info("Cleaned up dummy clerk profile by ID");
+        });
+        staffRepository.findByStaffId("HOD-DUMMY").ifPresent(staff -> {
+            staffRepository.delete(staff);
+            log.info("Cleaned up dummy HOD profile by ID");
+        });
+        staffRepository.findByStaffId("DIR-DUMMY").ifPresent(staff -> {
+            staffRepository.delete(staff);
+            log.info("Cleaned up dummy director profile by ID");
+        });
     }
 
     private void seedAdmin() {

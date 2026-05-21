@@ -258,6 +258,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public List<UserProfileResponse> getAllUsers() {
         return userAccountRepository.findAll().stream()
+                .filter(account -> {
+                    if (account.getRole() == Role.STUDENT) {
+                        return studentRepository.existsById(account.getUserId());
+                    } else {
+                        return staffRepository.existsById(account.getUserId());
+                    }
+                })
                 .map(accountDirectoryService::buildProfile)
                 .collect(Collectors.toList());
     }
