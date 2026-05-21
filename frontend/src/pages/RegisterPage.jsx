@@ -81,7 +81,7 @@ export default function RegisterPage() {
   }, [])
 
   const filteredUsers = users.filter(u => {
-    const roleFilter = searchParams.get('role')
+    const roleFilter = searchParams.get('role') || 'STUDENT'
     const deptFilter = searchParams.get('dept')
     const yearFilter = searchParams.get('year')
 

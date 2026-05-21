@@ -424,7 +424,7 @@ export default function HodDashboard({ user, summary }) {
               Quick Actions
             </div>
             <div className="mt-6 space-y-3">
-              <Link to="/register" className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 transition hover:border-amber-200">
+              <Link to={`/register?role=STUDENT${user?.department ? `&dept=${user.department}` : ''}`} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 transition hover:border-amber-200">
                 <span className="text-sm font-black uppercase tracking-[0.1em] text-slate-900">Manage Students</span>
                 <Users size={16} className="text-slate-700" />
               </Link>
