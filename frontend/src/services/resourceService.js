@@ -28,6 +28,16 @@ export const deleteResource = async (id) => {
   await api.delete(`/resources/${id}`)
 }
 
+/**
+ * Triggers an immediate SPPU academic content sync on the backend.
+ * Only available to staff / admin roles.
+ * The sync runs asynchronously – the API returns immediately.
+ */
+export const syncExternalResources = async () => {
+  const response = await api.post('/resources/sync')
+  return response.data
+}
+
 export const toggleBookmark = async (resourceId) => {
   const response = await api.post(`/bookmarks/${resourceId}`)
   return response.data.data

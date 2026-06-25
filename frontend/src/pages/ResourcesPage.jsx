@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react'
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import EmptyState from '../components/ui/EmptyState'
 import ResourceCard from '../components/resources/ResourceCard'
@@ -7,8 +8,11 @@ import {
   deleteResource,
   downloadResource,
   fetchResources,
+  syncExternalResources,
   toggleBookmark,
 } from '../services/resourceService'
+
+const STAFF_ROLES = ['SUPER_ADMIN', 'DIRECTOR', 'HOD', 'STAFF']
 
 const initialFilters = {
   search: '',
@@ -24,6 +28,13 @@ export default function ResourcesPage() {
   const [filters, setFilters] = useState(initialFilters)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  // Sync state
+  const [syncing, setSyncing] = useState(false)
+  const [syncMessage, setSyncMessage] = useState('')
+  const [syncError, setSyncError] = useState('')
+
+  const isStaff = user && STAFF_ROLES.includes(user.role)
 
   const deferredSearch = useDeferredValue(filters.search)
 
@@ -101,21 +112,96 @@ export default function ResourcesPage() {
     }
   }
 
+  /**
+   * Triggers an on-demand SPPU content sync and re-fetches the resource list
+   * after a short delay to allow the backend time to ingest new records.
+   */
+  const handleSppuSync = async () => {
+    setSyncing(true)
+    setSyncMessage('')
+    setSyncError('')
+    try {
+      const result = await syncExternalResources()
+      setSyncMessage(result?.message || 'SPPU sync started! New resources will appear shortly.')
 
+      // Re-fetch the resource list after ~5 s to pick up newly synced items
+      setTimeout(() => {
+        setLoading(true)
+        fetchResources(query)
+          .then((data) => setResources(data))
+          .catch(() => {})
+          .finally(() => setLoading(false))
+      }, 5000)
+    } catch (syncErr) {
+      setSyncError(syncErr.response?.data?.message || 'Sync failed. Please try again later.')
+    } finally {
+      setSyncing(false)
+      // Auto-dismiss toast after 8 s
+      setTimeout(() => {
+        setSyncMessage('')
+        setSyncError('')
+      }, 8000)
+    }
+  }
 
   return (
     <div className="space-y-8">
       <section className="portal-page-hero rounded-[2.4rem] px-6 py-8">
         <p className="text-xs font-black uppercase tracking-[0.35em] text-amber-700">Resource Library</p>
-        <h2 className="mt-3 font-display text-4xl text-slate-950 font-black">Search, filter, bookmark, and download academic content.</h2>
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+          <h2 className="font-display text-4xl text-slate-950 font-black">
+            Search, filter, bookmark, and download academic content.
+          </h2>
+
+          {/* Sync SPPU Feed button – staff / admin only */}
+          {isStaff && (
+            <button
+              id="sppu-sync-btn"
+              onClick={handleSppuSync}
+              disabled={syncing}
+              className="flex items-center gap-2 rounded-2xl border-2 border-amber-400 bg-amber-50 px-5 py-3 text-sm font-black text-amber-800 shadow-sm transition-all hover:bg-amber-100 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+              title="Manually pull the latest MCA &amp; MBA resources from the SPPU website"
+            >
+              <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} />
+              {syncing ? 'Syncing SPPU Feed…' : 'Sync SPPU Feed'}
+            </button>
+          )}
+        </div>
+
         <p className="mt-4 max-w-3xl text-sm font-semibold leading-7 text-slate-800">
           Students can discover materials quickly, while academic teams keep resource quality and access organized.
+          {isStaff && (
+            <span className="ml-2 text-amber-700">
+              Staff: use the <strong>Sync SPPU Feed</strong> button to pull the latest syllabi, question papers, timetables,
+              and announcements directly from the SPPU official website.
+            </span>
+          )}
         </p>
+
+        {/* Sync status toasts */}
+        {syncMessage && (
+          <div className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-3 text-sm font-semibold text-emerald-800">
+            <span className="text-emerald-500">✔</span>
+            {syncMessage}
+          </div>
+        )}
+        {syncError && (
+          <div className="mt-4 flex items-center gap-3 rounded-xl bg-red-50 border border-red-200 px-5 py-3 text-sm font-semibold text-red-800">
+            <span className="text-red-500">✖</span>
+            {syncError}
+          </div>
+        )}
       </section>
 
       <ResourceFilters filters={filters} onChange={handleFilterChange} />
 
-      {loading ? <div className="grid gap-5 xl:grid-cols-2">{Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-72 animate-pulse rounded-[2rem] bg-white/5" />)}</div> : null}
+      {loading ? (
+        <div className="grid gap-5 xl:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-72 animate-pulse rounded-[2rem] bg-white/5" />
+          ))}
+        </div>
+      ) : null}
       {error ? <EmptyState title="Library unavailable" description={error} /> : null}
       {!loading && !error && !resources.length ? (
         <EmptyState
@@ -133,8 +219,6 @@ export default function ResourcesPage() {
             onBookmark={handleBookmark}
             onDelete={handleDelete}
             onDownload={handleDownload}
-
-
             isDownloading={downloadingId === resource.id}
           />
         ))}

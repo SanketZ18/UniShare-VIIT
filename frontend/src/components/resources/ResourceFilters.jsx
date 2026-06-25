@@ -1,7 +1,17 @@
 import { Filter, Hash, Layers, Search } from 'lucide-react'
 
-const typeOptions = ['ALL', 'NOTES', 'ASSIGNMENT', 'QUESTION_PAPER', 'SYLLABUS']
+const typeOptions = ['ALL', 'NOTES', 'ASSIGNMENT', 'QUESTION_PAPER', 'SYLLABUS', 'ANNOUNCEMENT']
 const departmentOptions = ['ALL', 'MCA', 'MBA']
+
+const typeLabels = {
+  ALL: 'All Types',
+  NOTES: 'Notes',
+  ASSIGNMENT: 'Assignment',
+  QUESTION_PAPER: 'Question Paper',
+  SYLLABUS: 'Syllabus',
+  ANNOUNCEMENT: 'SPPU Announcement / Timetable',
+}
+
 
 export default function ResourceFilters({ filters, onChange }) {
   return (
@@ -31,7 +41,7 @@ export default function ResourceFilters({ filters, onChange }) {
             >
               {typeOptions.map((option) => (
                 <option key={option} value={option}>
-                  {option.replaceAll('_', ' ')}
+                  {typeLabels[option] || option.replaceAll('_', ' ')}
                 </option>
               ))}
             </select>

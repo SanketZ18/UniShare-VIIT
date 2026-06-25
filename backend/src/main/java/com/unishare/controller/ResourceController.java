@@ -2,6 +2,7 @@ package com.unishare.controller;
 
 import com.unishare.dto.ApiResponse;
 import com.unishare.dto.resource.ResourceResponse;
+import com.unishare.service.ExternalAcademicContentService;
 import com.unishare.service.ResourceService;
 import java.io.IOException;
 import java.util.List;
@@ -11,12 +12,14 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ResourceController {
 
     private final ResourceService resourceService;
+    private final ExternalAcademicContentService externalAcademicContentService;
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -63,6 +67,27 @@ public class ResourceController {
                 "Resource fetched successfully",
                 resourceService.getResourceById(id, userDetails.getUsername())
         ));
+    }
+
+    /**
+     * Manually trigger an immediate SPPU content sync.
+     * Runs asynchronously so the HTTP response is returned immediately.
+     * Restricted to staff and administrators.
+     */
+    @PostMapping("/sync")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','DIRECTOR','HOD','STAFF')")
+    public ResponseEntity<ApiResponse<Void>> triggerSppuSync() {
+        // Fire-and-forget: runs in a background thread via @Async
+        runSyncAsync();
+        return ResponseEntity.ok(ApiResponse.success(
+                "SPPU sync started. New resources will appear in the library shortly.",
+                null
+        ));
+    }
+
+    @Async
+    protected void runSyncAsync() {
+        externalAcademicContentService.syncConfiguredResources();
     }
 
     @DeleteMapping("/{id}")
