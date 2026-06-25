@@ -41,6 +41,7 @@ public class ResourceController {
             @RequestParam(required = false) String department,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String source,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -52,6 +53,7 @@ public class ResourceController {
                         department,
                         year,
                         search,
+                        source,
                         userDetails.getUsername()
                 )
         ));

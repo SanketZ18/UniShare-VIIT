@@ -1,7 +1,8 @@
 import { Filter, Hash, Layers, Search } from 'lucide-react'
 
-const typeOptions = ['ALL', 'NOTES', 'ASSIGNMENT', 'QUESTION_PAPER', 'SYLLABUS', 'ANNOUNCEMENT']
+const typeOptions = ['ALL', 'NOTES', 'ASSIGNMENT', 'QUESTION_PAPER', 'SYLLABUS', 'SPPU_RESOURCES']
 const departmentOptions = ['ALL', 'MCA', 'MBA']
+const sourceOptions = ['ALL', 'COLLEGE_AUTHORITY']
 
 const typeLabels = {
   ALL: 'All Types',
@@ -9,14 +10,19 @@ const typeLabels = {
   ASSIGNMENT: 'Assignment',
   QUESTION_PAPER: 'Question Paper',
   SYLLABUS: 'Syllabus',
-  ANNOUNCEMENT: 'SPPU Announcement / Timetable',
+  SPPU_RESOURCES: 'SPPU Resources',
+}
+
+const sourceLabels = {
+  ALL: 'All Sources',
+  COLLEGE_AUTHORITY: 'College Authority',
 }
 
 
 export default function ResourceFilters({ filters, onChange }) {
   return (
     <div className="portal-panel portal-3d rounded-[2rem] p-8">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-6">
         <div className="space-y-2 md:col-span-2">
           <label className="ml-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-700">Search</label>
           <div className="relative">
@@ -42,6 +48,24 @@ export default function ResourceFilters({ filters, onChange }) {
               {typeOptions.map((option) => (
                 <option key={option} value={option}>
                   {typeLabels[option] || option.replaceAll('_', ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="ml-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-700">Source</label>
+          <div className="relative">
+            <Layers size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-800" />
+            <select
+              value={filters.source || 'ALL'}
+              onChange={(event) => onChange('source', event.target.value)}
+              className="portal-form-field w-full cursor-pointer appearance-none pl-12 pr-4 py-3.5 text-sm"
+            >
+              {sourceOptions.map((option) => (
+                <option key={option} value={option}>
+                  {sourceLabels[option]}
                 </option>
               ))}
             </select>

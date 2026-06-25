@@ -17,6 +17,7 @@ const STAFF_ROLES = ['SUPER_ADMIN', 'DIRECTOR', 'HOD', 'STAFF']
 const initialFilters = {
   search: '',
   type: 'ALL',
+  source: 'ALL',
   department: 'ALL',
   semester: '',
   year: '',
@@ -42,11 +43,12 @@ export default function ResourcesPage() {
     () => ({
       search: deferredSearch || undefined,
       type: filters.type === 'ALL' ? undefined : filters.type,
+      source: filters.source === 'ALL' ? undefined : filters.source,
       department: filters.department === 'ALL' ? undefined : filters.department,
       semester: filters.semester || undefined,
       year: filters.year || undefined,
     }),
-    [deferredSearch, filters.type, filters.department, filters.semester, filters.year],
+    [deferredSearch, filters.type, filters.source, filters.department, filters.semester, filters.year],
   )
 
   useEffect(() => {

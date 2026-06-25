@@ -92,9 +92,10 @@ public class ResourceServiceImpl implements ResourceService {
             String department,
             Integer year,
             String search,
+            String source,
             String viewerEmail
     ) {
-        Query query = new Query().with(Sort.by(Sort.Direction.DESC, "createdAt"));
+        Query query = new Query().with(Sort.by(Sort.Direction.DESC, "year", "createdAt"));
         if (subject != null && !subject.isBlank()) {
             query.addCriteria(Criteria.where("subject").regex(subject, "i"));
         }
@@ -102,7 +103,11 @@ public class ResourceServiceImpl implements ResourceService {
             query.addCriteria(Criteria.where("semester").is(semester));
         }
         if (type != null && !type.isBlank()) {
-            query.addCriteria(Criteria.where("type").is(ResourceType.valueOf(type.toUpperCase())));
+            if ("SPPU_RESOURCES".equalsIgnoreCase(type)) {
+                query.addCriteria(Criteria.where("uploadedBy").is("SYSTEM_SPPU"));
+            } else {
+                query.addCriteria(Criteria.where("type").is(ResourceType.valueOf(type.toUpperCase())));
+            }
         } else {
             query.addCriteria(Criteria.where("type").ne(ResourceType.ANNOUNCEMENT));
         }
@@ -111,6 +116,9 @@ public class ResourceServiceImpl implements ResourceService {
         }
         if (year != null) {
             query.addCriteria(Criteria.where("year").is(year));
+        }
+        if ("COLLEGE_AUTHORITY".equalsIgnoreCase(source)) {
+            query.addCriteria(Criteria.where("uploadedBy").ne("SYSTEM_SPPU"));
         }
         if (search != null && !search.isBlank()) {
             query.addCriteria(new Criteria().orOperator(
