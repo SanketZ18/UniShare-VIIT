@@ -118,18 +118,23 @@ public class DemoDataInitializer implements CommandLineRunner {
     }
 
     private void seedAdmin() {
-        Staff adminProfile = staffRepository.findByEmailIgnoreCase("sanket@unishare.edu")
-                .orElseGet(() -> staffRepository.save(Staff.builder()
-                        .staffId("ADMIN001")
-                        .fullName("Sanket Zagade")
-                        .email("sanket@unishare.edu")
-                        .mobile("9876543210")
-                        .gender(Gender.MALE)
-                        .designation("Super Admin")
-                        .department(Department.MCA)
-                        .subjects(List.of("Portal Administration", "System Governance"))
-                        .status(UserStatus.ACTIVE)
-                        .build()));
+        // Check by staffId first to avoid duplicate-key violations on the unique index.
+        // Fall back to email lookup, then create fresh if neither exists.
+        Staff adminProfile = staffRepository.findByStaffId("ADMIN001")
+                .orElseGet(() ->
+                    staffRepository.findByEmailIgnoreCase("sanket@unishare.edu")
+                            .orElseGet(() -> staffRepository.save(Staff.builder()
+                                    .staffId("ADMIN001")
+                                    .fullName("Sanket Zagade")
+                                    .email("sanket@unishare.edu")
+                                    .mobile("9876543210")
+                                    .gender(Gender.MALE)
+                                    .designation("Super Admin")
+                                    .department(Department.MCA)
+                                    .subjects(List.of("Portal Administration", "System Governance"))
+                                    .status(UserStatus.ACTIVE)
+                                    .build()))
+                );
 
         upsertAccount("sanket@unishare.edu", "Sanket@123", Role.SUPER_ADMIN, adminProfile.getId());
     }
