@@ -25,6 +25,11 @@ public class AuthController {
     private final AuthService authService;
     private final ExcelService excelService;
 
+    @GetMapping("/ping")
+    public ResponseEntity<ApiResponse<String>> ping() {
+        return ResponseEntity.ok(ApiResponse.success("Pong", "Service is up and running"));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody AuthRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Login successful", authService.login(request)));

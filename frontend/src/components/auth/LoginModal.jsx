@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, Eye, EyeOff, Lock, Mail, X } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, Lock, Mail, X, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import api from '../../services/api'
 
 export default function LoginModal({ isOpen, onClose }) {
   const { login, authBusy } = useAuth()
@@ -9,6 +10,41 @@ export default function LoginModal({ isOpen, onClose }) {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [serverWaking, setServerWaking] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    let active = true
+    const checkServer = async () => {
+      // Start a timeout. If the server doesn't respond in 1 second, it is likely cold.
+      const timeoutId = setTimeout(() => {
+        if (active) {
+          setServerWaking(true)
+        }
+      }, 1000)
+
+      try {
+        await api.get('/auth/ping')
+        clearTimeout(timeoutId)
+        if (active) {
+          setServerWaking(false)
+        }
+      } catch (err) {
+        // Even if it failed with error, a response means the container is awake
+        clearTimeout(timeoutId)
+        if (active) {
+          setServerWaking(false)
+        }
+      }
+    }
+
+    checkServer()
+
+    return () => {
+      active = false
+    }
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -103,6 +139,13 @@ export default function LoginModal({ isOpen, onClose }) {
               </button>
             </div>
           </div>
+
+          {serverWaking && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800 animate-pulse flex items-center gap-2">
+              <Zap size={14} className="text-amber-600 shrink-0" />
+              <span>Server is waking up from sleep. First-time login may take a few moments...</span>
+            </div>
+          )}
 
           {error ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">

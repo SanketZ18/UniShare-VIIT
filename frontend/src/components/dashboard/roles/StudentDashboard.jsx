@@ -18,6 +18,7 @@ import TimetableRenderer from '../TimetableRenderer'
 import { X } from 'lucide-react'
 
 export default function StudentDashboard({ user, summary }) {
+  const [selectedSemester, setSelectedSemester] = useState(user?.semester || 1)
   const [timetable, setTimetable] = useState(null)
   const [activeDay, setActiveDay] = useState('Monday')
   const [loadingTimetable, setLoadingTimetable] = useState(true)
@@ -29,12 +30,15 @@ export default function StudentDashboard({ user, summary }) {
       if (!user?.department) return
       try {
         setLoadingTimetable(true)
-        const data = await fetchTimetable(user.department, user.semester || 1)
+        const data = await fetchTimetable(user.department, selectedSemester)
         if (active) {
           setTimetable(data)
         }
       } catch (err) {
         console.error('Failed to fetch timetable', err)
+        if (active) {
+          setTimetable(null)
+        }
       } finally {
         if (active) {
           setLoadingTimetable(false)
@@ -43,7 +47,7 @@ export default function StudentDashboard({ user, summary }) {
     }
     getTimetableData()
     return () => { active = false }
-  }, [user?.department, user?.semester])
+  }, [user?.department, selectedSemester])
 
   const stats = [
     { label: 'Resources', value: summary?.totalResources || 0, icon: BookOpen, shell: 'bg-amber-100 text-amber-700' },
@@ -264,7 +268,7 @@ export default function StudentDashboard({ user, summary }) {
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-700">Weekly Timetable</p>
                     <h3 className="mt-1 text-base font-black text-slate-900">
-                      {user?.department || 'MCA'} - Sem {user?.semester || 1}
+                      {user?.department || 'MCA'} - Sem {selectedSemester}
                     </h3>
                   </div>
                 </div>
@@ -277,6 +281,24 @@ export default function StudentDashboard({ user, summary }) {
                     View Full
                   </button>
                 )}
+              </div>
+
+              {/* Semester Selector */}
+              <div className="flex gap-1.5 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/50 mb-4">
+                {[1, 2, 3, 4].map((sem) => (
+                  <button
+                    key={sem}
+                    type="button"
+                    onClick={() => setSelectedSemester(sem)}
+                    className={`flex-1 text-[10px] font-black uppercase py-2 rounded-xl transition ${
+                      selectedSemester === sem
+                        ? 'bg-white text-amber-900 border border-amber-200 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    Sem {sem}
+                  </button>
+                ))}
               </div>
 
               {loadingTimetable ? (
@@ -357,12 +379,12 @@ export default function StudentDashboard({ user, summary }) {
                 Weekly Class Timetable & Syllabus
               </h2>
               <p className="text-xs text-slate-500 font-bold uppercase mt-1">
-                Department: {user?.department || 'MCA'} | Semester: {user?.semester || 1}
+                Department: {user?.department || 'MCA'} | Semester: {selectedSemester}
               </p>
             </div>
 
             <div className="border-t border-slate-100 pt-6">
-              <TimetableRenderer timetableData={timetable} semester={user?.semester || 1} department={user?.department || 'MCA'} isEditMode={false} />
+              <TimetableRenderer timetableData={timetable} semester={selectedSemester} department={user?.department || 'MCA'} isEditMode={false} />
             </div>
           </div>
         </div>

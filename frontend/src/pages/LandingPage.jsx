@@ -19,6 +19,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import LoginModal from '../components/auth/LoginModal'
 import { useAuth } from '../hooks/useAuth'
 import viitLogo from '../assets/logo.png'
+import api from '../services/api'
 
 const featureCards = [
   {
@@ -105,6 +106,11 @@ export default function LandingPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [loginOpen, setLoginOpen] = useState(false)
+
+  useEffect(() => {
+    // Background warmup ping to trigger cold-start wakeup on hosting platform
+    api.get('/auth/ping').catch(() => {})
+  }, [])
 
   useEffect(() => {
     const justLoggedOut = sessionStorage.getItem('justLoggedOut')

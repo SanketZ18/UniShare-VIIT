@@ -14,6 +14,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -28,8 +29,15 @@ public class DemoDataInitializer implements CommandLineRunner {
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${app.demo-data.enabled:false}")
+    private boolean demoDataEnabled;
+
     @Override
     public void run(String... args) {
+        if (!demoDataEnabled) {
+            log.info("Demo data seeding is disabled. Skipping DemoDataInitializer.");
+            return;
+        }
         log.info("Cleaning up existing demo data if present...");
         cleanupDemoData();
 

@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 @Data
 @Builder
@@ -22,8 +23,12 @@ public class Student {
 
     @Id
     private String id;
+
+    @Indexed(unique = true)
     private String prn;
     private String fullName;
+
+    @Indexed(unique = true)
     private String email;
     private String mobile;
     private Gender gender;

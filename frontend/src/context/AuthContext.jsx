@@ -7,11 +7,11 @@ const AUTH_STORAGE_KEY = 'unishare_auth'
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => {
-    const stored = sessionStorage.getItem(AUTH_STORAGE_KEY)
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
     return stored ? JSON.parse(stored).token : null
   })
   const [user, setUser] = useState(() => {
-    const stored = sessionStorage.getItem(AUTH_STORAGE_KEY)
+    const stored = localStorage.getItem(AUTH_STORAGE_KEY)
     return stored ? JSON.parse(stored).user : null
   })
   const [booting, setBooting] = useState(Boolean(token))
@@ -35,14 +35,14 @@ export function AuthProvider({ children }) {
         }
         startTransition(() => {
           setUser(profile)
-          sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token, user: profile }))
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token, user: profile }))
         })
       })
       .catch(() => {
         if (!active) {
           return
         }
-        sessionStorage.removeItem(AUTH_STORAGE_KEY)
+        localStorage.removeItem(AUTH_STORAGE_KEY)
         setToken(null)
         setUser(null)
       })
@@ -65,7 +65,7 @@ export function AuthProvider({ children }) {
       setAuthToken(session.token)
       setToken(session.token)
       setUser(session.user)
-      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token: session.token, user: session.user }))
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ token: session.token, user: session.user }))
       return session.user
     } catch (error) {
       setBooting(false)

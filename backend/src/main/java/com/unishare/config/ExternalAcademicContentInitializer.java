@@ -14,15 +14,8 @@ public class ExternalAcademicContentInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Run initial sync in a background thread to avoid blocking startup
-        new Thread(() -> {
-            try {
-                Thread.sleep(5000); // Wait a few seconds for system to settle
-                externalAcademicContentService.syncConfiguredResources();
-            } catch (Exception e) {
-                // Background sync failure shouldn't crash the app
-            }
-        }).start();
+        // Startup sync thread removed to optimize login speed and startup performance.
+        // The scheduled task will run the sync after the configured initial delay (5 minutes).
     }
 
     @Scheduled(
