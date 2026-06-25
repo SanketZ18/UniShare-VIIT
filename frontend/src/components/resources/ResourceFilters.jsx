@@ -22,7 +22,7 @@ const sourceLabels = {
 export default function ResourceFilters({ filters, onChange }) {
   return (
     <div className="portal-panel portal-3d rounded-[2rem] p-8">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-7">
         <div className="space-y-2 md:col-span-2">
           <label className="ml-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-700">Search</label>
           <div className="relative">
@@ -90,28 +90,34 @@ export default function ResourceFilters({ filters, onChange }) {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 lg:col-span-2">
           <label className="ml-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-700">Semester / Year</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Hash size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-800" />
-              <input
+              <select
                 value={filters.semester}
                 onChange={(event) => onChange('semester', event.target.value)}
-                type="number"
-                placeholder="Sem"
-                className="portal-form-field w-full pl-9 pr-3 py-3.5 text-sm"
-              />
+                className="portal-form-field w-full cursor-pointer appearance-none pl-9 pr-3 py-3.5 text-sm"
+              >
+                <option value="">Sem</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
             </div>
             <div className="relative flex-1">
               <Hash size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-800" />
-              <input
+              <select
                 value={filters.year}
                 onChange={(event) => onChange('year', event.target.value)}
-                type="number"
-                placeholder="Year"
-                className="portal-form-field w-full pl-9 pr-3 py-3.5 text-sm"
-              />
+                className="portal-form-field w-full cursor-pointer appearance-none pl-9 pr-3 py-3.5 text-sm"
+              >
+                <option value="">Year</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+              </select>
             </div>
           </div>
         </div>
