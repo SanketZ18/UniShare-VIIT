@@ -24,7 +24,7 @@ public interface AuthService {
 
     void bulkDeleteStudentsByBatch(String callerEmail, String batchYear);
 
-    List<UserProfileResponse> getAllUsers();
+    List<UserProfileResponse> getAllUsers(String callerEmail);
 
     void bootstrapAdminIfNeeded();
 }

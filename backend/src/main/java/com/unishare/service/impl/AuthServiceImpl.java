@@ -59,6 +59,12 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.bootstrap.admin.name:UniShare - Smart Academic Content Portal Admin}")
     private String bootstrapAdminName;
 
+    @Value("${app.bootstrap.admin.mobile:9999999999}")
+    private String bootstrapAdminMobile;
+
+    @Value("${app.bootstrap.admin.gender:OTHER}")
+    private String bootstrapAdminGender;
+
     @Override
     public AuthResponse login(AuthRequest request) {
         try {
@@ -256,9 +262,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public List<UserProfileResponse> getAllUsers() {
+    public List<UserProfileResponse> getAllUsers(String callerEmail) {
+        UserAccount caller = accountDirectoryService.getByEmail(callerEmail);
+        Role callerRole = caller.getRole();
+
         return userAccountRepository.findAll().stream()
                 .filter(account -> {
+                    if (account.getRole() == Role.SUPER_ADMIN && callerRole != Role.SUPER_ADMIN) {
+                        return false;
+                    }
                     if (account.getRole() == Role.STUDENT) {
                         return studentRepository.existsById(account.getUserId());
                     } else {
@@ -280,13 +292,20 @@ public class AuthServiceImpl implements AuthService {
         try {
             if (!userAccountRepository.existsByEmailIgnoreCase(bootstrapAdminEmail.trim().toLowerCase(Locale.ROOT)) &&
                     !staffRepository.existsByStaffId("BOOTSTRAP-ADMIN")) {
+                com.unishare.model.enums.Gender genderEnum;
+                try {
+                    genderEnum = com.unishare.model.enums.Gender.valueOf(bootstrapAdminGender.toUpperCase(Locale.ROOT));
+                } catch (Exception e) {
+                    genderEnum = com.unishare.model.enums.Gender.OTHER;
+                }
+
                 RegisterRequest request = new RegisterRequest();
                 request.setRole(Role.SUPER_ADMIN);
                 request.setEmail(bootstrapAdminEmail.trim().toLowerCase(Locale.ROOT));
                 request.setPassword(bootstrapAdminPassword);
                 request.setFullName(bootstrapAdminName);
-                request.setMobile("9999999999");
-                request.setGender(com.unishare.model.enums.Gender.OTHER);
+                request.setMobile(bootstrapAdminMobile);
+                request.setGender(genderEnum);
                 request.setDepartment(Department.COMMON);
                 request.setStatus(com.unishare.model.enums.UserStatus.ACTIVE);
                 request.setStaffId("BOOTSTRAP-ADMIN");

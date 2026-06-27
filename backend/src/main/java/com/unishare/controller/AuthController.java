@@ -98,7 +98,7 @@ public class AuthController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<List<UserProfileResponse>>> getAllUsers() {
-        return ResponseEntity.ok(ApiResponse.success("Users fetched successfully", authService.getAllUsers()));
+    public ResponseEntity<ApiResponse<List<UserProfileResponse>>> getAllUsers(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success("Users fetched successfully", authService.getAllUsers(userDetails.getUsername())));
     }
 }
